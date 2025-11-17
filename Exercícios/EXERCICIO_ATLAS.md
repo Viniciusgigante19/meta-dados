@@ -163,14 +163,14 @@ def main():
     catalogger = DataCatalogger(atlas, extractor)
     
     # Catalogar dados
-    print("🔄 Iniciando catalogação...")
+    print("Iniciando catalogação...")
     results = catalogger.catalog_all_tables()
-    print(f"✅ {results['tables_created']} tabelas catalogadas")
+    print(f"{results['tables_created']} tabelas catalogadas")
     
     # Gerar relatório
     report = DiscoveryReport(atlas)
     report.generate_report("discovery_report")
-    print("📊 Relatório gerado!")
+    print("Relatório gerado!")
 
 if __name__ == "__main__":
     main()
@@ -199,16 +199,15 @@ if __name__ == "__main__":
 - Incluir README.md detalhado
 
 ### 2. Submeter Solução
-**Preencher formulário:** [Link do Google Forms]
+**Preencher formulário:** [\[Link do Google Forms\]](https://forms.gle/d6unmZ7ULkRTXXbt9)
 
 **Informações necessárias:**
 - Nome completo
-- Email
+- RA
 - Link do repositório GitHub
-- Vídeo demonstração (opcional, +5 pontos)
 
 ### 3. Prazo
-**Data limite:** [DATA_LIMITE]  
+**Data limite:** 20/11/2025  
 **Horário:** 23:59
 
 ## Dicas de Implementação
