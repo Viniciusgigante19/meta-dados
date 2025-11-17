@@ -275,4 +275,3 @@ column_entity = {
 ## Bons Estudos!
 
 **Lembre-se:** este exercício simula um cenário real de DataOps. Foque na qualidade, documentação e funcionalidade. Demonstre seu conhecimento em catalogação de dados e integração de sistemas!
-
