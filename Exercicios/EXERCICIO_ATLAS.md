@@ -40,9 +40,9 @@ Implementar uma classe `AtlasClient` que:
 - Implemente autenticação HTTP Basic
 - Tenha métodos para:
   - `search_entities(query)` - buscar entidades
-  - `create_entity(entity_data)` - criar entidade
-  - `get_entity(guid)` - obter entidade por GUID
-  - `get_lineage(guid)` - obter linhagem de uma entidade
+    - `create_entity(entity_data)` - criar entidade
+      - `get_entity(guid)` - obter entidade por GUID
+        - `get_lineage(guid)` - obter linhagem de uma entidade
 
 **Critérios de Avaliação:**
 - Tratamento de erros HTTP
