@@ -1,5 +1,3 @@
-# meu-catalogo-atlas/data_catalogger.py
-
 from config import (
     ATLAS_TYPE_DATABASE,
     ATLAS_TYPE_TABLE,
@@ -7,11 +5,15 @@ from config import (
     DEFAULT_DB_OWNER,
     DEFAULT_DB_DESCRIPTION,
     TABLE_QUALIFIED_NAME_TEMPLATE,
-    COLUMN_QUALIFIED_NAME_TEMPLATE
+    COLUMN_QUALIFIED_NAME_TEMPLATE,
+    POSTGRES_HOST,
+    POSTGRES_PORT,
+    POSTGRES_DATABASE,
+    POSTGRES_USER,
+    POSTGRES_PASSWORD
 )
-
-from postgres_extractor import PostgreSQLExtractor  # import corrigido
-from atlas_client import AtlasClient  # assumindo que AtlasClient está em atlas_client.py
+from postgres_extractor import PostgreSQLExtractor
+from atlas_client import AtlasClient
 
 class PostgresCataloger:
     def __init__(self, atlas_client, extractor):
@@ -37,8 +39,8 @@ class PostgresCataloger:
         db_entity = {
             "typeName": ATLAS_TYPE_DATABASE,
             "attributes": {
+                "qualifiedName": f"{db_name}@{POSTGRES_HOST}:{POSTGRES_PORT}",
                 "name": db_name,
-                "qualifiedName": db_name,
                 "owner": owner or DEFAULT_DB_OWNER,
                 "description": description or DEFAULT_DB_DESCRIPTION
             }
@@ -109,9 +111,15 @@ class PostgresCataloger:
 # Bloco MAIN para testar
 # -------------------------
 if __name__ == "__main__":
-    # Criar instâncias dos clientes
-    atlas_client = AtlasClient()            # configure com credenciais reais
-    extractor = PostgreSQLExtractor()       # configure com conexão real ou mocks
+    # Criar instâncias dos clientes aqui
+    atlas_client = AtlasClient()
+    extractor = PostgreSQLExtractor(
+        host=POSTGRES_HOST,
+        port=POSTGRES_PORT,
+        database=POSTGRES_DATABASE,
+        user=POSTGRES_USER,
+        password=POSTGRES_PASSWORD
+    )
 
     catalogger = PostgresCataloger(atlas_client, extractor)
 
