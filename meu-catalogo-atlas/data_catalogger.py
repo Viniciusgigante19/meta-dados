@@ -31,10 +31,39 @@ class PostgresCataloger:
         self.table_guids = {}
         self.column_guids = {}
 
-    def catalog_database(self, db_name, owner=None, description=None):
+    def catalog_instance(self, instance_name="postgres_instance"):
         """
-        Cria o database no Atlas e salva o GUID.
-        Retorna o GUID do database criado.
+        Cria a instância RDBMS primeiro (obrigatória para o database)
+        """
+        instance_entity = {
+            "typeName": "rdbms_instance",
+            "attributes": {
+                "qualifiedName": f"{instance_name}@postgres_cluster",
+                "name": instance_name,
+                "description": "PostgreSQL Instance",
+                "clusterName": "postgres_cluster",
+                "rdbms_type": "postgresql"
+            }
+        }
+        result = self.atlas_client.create_entity({"entities": [instance_entity]})
+        
+        # DEBUG: Mostrar resposta completa
+        print(">>> Resposta do Atlas:")
+        print(result)
+        
+        # O Atlas retorna GUIDs com chaves numéricas, não com qualifiedName
+        if 'guidAssignments' in result and result['guidAssignments']:
+            # Pega o primeiro GUID da lista (pode ser qualquer chave numérica)
+            instance_guid = list(result['guidAssignments'].values())[0]
+            print(f"✅ GUID da instância: {instance_guid}")
+            return instance_guid
+        else:
+            print("!!! ERRO: Nenhum GUID retornado")
+            return None
+
+    def catalog_database(self, db_name, instance_guid, owner=None, description=None):
+        """
+        Cria o database no Atlas referenciando a instância
         """
         db_entity = {
             "typeName": ATLAS_TYPE_DATABASE,
@@ -42,12 +71,19 @@ class PostgresCataloger:
                 "qualifiedName": f"{db_name}@{POSTGRES_HOST}:{POSTGRES_PORT}",
                 "name": db_name,
                 "owner": owner or DEFAULT_DB_OWNER,
-                "description": description or DEFAULT_DB_DESCRIPTION
+                "description": description or DEFAULT_DB_DESCRIPTION,
+                "clusterName": "postgres_cluster",
+                "instance": {"guid": instance_guid}
             }
         }
         result = self.atlas_client.create_entity({"entities": [db_entity]})
-        self.db_guid = result['guidAssignments'][db_entity['attributes']['qualifiedName']]
-        return self.db_guid
+        
+        # Corrigido: pega o primeiro GUID da lista
+        if 'guidAssignments' in result and result['guidAssignments']:
+            self.db_guid = list(result['guidAssignments'].values())[0]
+            return self.db_guid
+        else:
+            raise Exception("Falha ao criar database - nenhum GUID retornado")
 
     def catalog_all_tables(self):
         """
@@ -67,36 +103,46 @@ class PostgresCataloger:
                         table_name=table_name,
                         db_guid=self.db_guid
                     ),
-                    "db": {"guid": self.db_guid}
+                    "db": {"guid": self.db_guid},
+                    "clusterName": "postgres_cluster"
                 }
             }
             try:
                 result = self.atlas_client.create_entity({"entities": [table_entity]})
-                table_guid = result['guidAssignments'][table_entity['attributes']['qualifiedName']]
-                self.table_guids[table_name] = table_guid
+                
+                # CORRIGIDO: usa a mesma lógica dos outros métodos
+                if 'guidAssignments' in result and result['guidAssignments']:
+                    table_guid = list(result['guidAssignments'].values())[0]  # ← CORRETO
+                    self.table_guids[table_name] = table_guid
 
-                # Criar colunas da tabela
-                columns = self.extractor.get_columns(table_name)
-                for col in columns:
-                    col_entity = {
-                        "typeName": ATLAS_TYPE_COLUMN,
-                        "attributes": {
-                            "name": col['column_name'],
-                            "qualifiedName": COLUMN_QUALIFIED_NAME_TEMPLATE.format(
-                                table_name=table_name,
-                                column_name=col['column_name'],
-                                db_guid=self.db_guid
-                            ),
-                            "data_type": col['data_type'],
-                            "is_nullable": col['is_nullable'],
-                            "table": {"guid": table_guid}
+                    # Criar colunas da tabela
+                    columns = self.extractor.get_columns(table_name)
+                    for col in columns:
+                        col_entity = {
+                            "typeName": ATLAS_TYPE_COLUMN,
+                            "attributes": {
+                                "name": col['column_name'],
+                                "qualifiedName": COLUMN_QUALIFIED_NAME_TEMPLATE.format(
+                                    table_name=table_name,
+                                    column_name=col['column_name'],
+                                    db_guid=self.db_guid
+                                ),
+                                "data_type": col['data_type'],
+                                "is_nullable": col['is_nullable'],
+                                "table": {"guid": table_guid}
+                            }
                         }
-                    }
-                    col_result = self.atlas_client.create_entity({"entities": [col_entity]})
-                    col_guid = col_result['guidAssignments'][col_entity['attributes']['qualifiedName']]
-                    self.column_guids[f"{table_name}.{col['column_name']}"] = col_guid
+                        col_result = self.atlas_client.create_entity({"entities": [col_entity]})
+                        
+                        # CORRIGIDO: usa a mesma lógica dos outros métodos
+                        if 'guidAssignments' in col_result and col_result['guidAssignments']:
+                            col_guid = list(col_result['guidAssignments'].values())[0]  # ← CORRETO
+                            self.column_guids[f"{table_name}.{col['column_name']}"] = col_guid
 
-                cataloged_tables.append(table_name)
+                    cataloged_tables.append(table_name)
+                else:
+                    print(f"⚠️ Tabela {table_name} sem GUID retornado")
+                    
             except Exception as e:
                 print(f"Falha ao catalogar tabela {table_name}: {e}")
 
@@ -106,7 +152,6 @@ class PostgresCataloger:
             "table_guids": self.table_guids,
             "column_guids": self.column_guids
         }
-
 # -------------------------
 # Bloco MAIN para testar
 # -------------------------
@@ -123,15 +168,18 @@ if __name__ == "__main__":
 
     catalogger = PostgresCataloger(atlas_client, extractor)
 
-    # Testar catalog_database
-    db_guid = catalogger.catalog_database("meu_db_teste")
-    print("Database criado!")
-    print("GUID do database:", db_guid)
-    print("db_guid armazenado no objeto:", catalogger.db_guid)
-    print("-" * 50)
+    # 1. PRIMEIRO: criar a instância
+    print("Criando instância RDBMS...")
+    instance_guid = catalogger.catalog_instance("postgres_instance")
+    print(f"✅ Instância criada! GUID: {instance_guid}")
 
-    # Testar catalog_all_tables
+    # 2. SEGUNDO: criar o database referenciando a instância
+    print("Criando database...")
+    db_guid = catalogger.catalog_database("meu_db_teste", instance_guid=instance_guid)
+    print(f"✅ Database criado! GUID: {db_guid}")
+
+    # 3. TERCEIRO: criar tabelas e colunas
+    print("Catalogando tabelas e colunas...")
     resumo = catalogger.catalog_all_tables()
-    print("Catalogação de tabelas finalizada!")
-    print("Resumo completo da catalogação:")
-    print(resumo)
+    print("✅ Catalogação finalizada!")
+    print("Resumo:", resumo)

@@ -28,8 +28,16 @@ class AtlasClient:
     def create_entity(self, entity_data):
         print(">>> Enviando payload para Atlas:")
         print(entity_data)  # log do JSON que vai no POST
-        endpoint = f"{self.url}/api/atlas/v2/entity"
+        endpoint = f"{self.url}/api/atlas/v2/entity/bulk"  # ← MUDEI PARA /bulk
         response = self.session.post(endpoint, json=entity_data)
+        
+        # DEBUG: Mostrar resposta completa do erro
+        if response.status_code != 200:
+            print(f"!!! ERRO {response.status_code}:")
+            print(f"!!! Response Headers: {response.headers}")
+            print(f"!!! Response Text: {response.text}")
+            print(f"!!! URL: {response.url}")
+        
         response.raise_for_status()
         return response.json()
 
