@@ -1,0 +1,100 @@
+[
+    {
+        "database_name": "Unknown",
+        "table_name": "employees",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "shippers",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "products",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "categories",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "suppliers",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "region",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "customers",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "orders",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "territories",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "order_details",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "employee_territories",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "us_states",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "customer_demographics",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    },
+    {
+        "database_name": "Unknown",
+        "table_name": "customer_customer_demo",
+        "columns": [],
+        "num_columns": 0,
+        "relationships": []
+    }
+]
