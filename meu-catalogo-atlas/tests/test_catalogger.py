@@ -1,8 +1,12 @@
 # tests/test_postgres_cataloger.py
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import unittest
 from unittest.mock import Mock
-from postgres_cataloger import PostgresCataloger
+from data_catalogger import PostgresCataloger
 
 class TestPostgresCataloger(unittest.TestCase):
     def setUp(self):
@@ -50,12 +54,20 @@ class TestPostgresCataloger(unittest.TestCase):
         return fake_columns.get(table_name, [])
 
     def test_catalog_database(self):
-        db_guid = self.cataloger.catalog_database(self.db_name)
+        # Mock da criação da instância primeiro
+        instance_guid = "guid-instance-1"
+        self.cataloger.catalog_instance = Mock(return_value=instance_guid)
+        
+        db_guid = self.cataloger.catalog_database(self.db_name, instance_guid=instance_guid)
         self.assertIsNotNone(db_guid)
         self.assertTrue(db_guid.startswith("guid-"))
 
     def test_catalog_all_tables(self):
-        self.cataloger.catalog_database(self.db_name)
+        # Mock da criação da instância primeiro
+        instance_guid = "guid-instance-1"
+        self.cataloger.catalog_instance = Mock(return_value=instance_guid)
+        
+        self.cataloger.catalog_database(self.db_name, instance_guid=instance_guid)
         result = self.cataloger.catalog_all_tables()
 
         # Verificações básicas
@@ -67,6 +79,10 @@ class TestPostgresCataloger(unittest.TestCase):
                           "orders.order_id", "orders.order_date"})
 
     def test_catalog_all_tables_with_exception(self):
+        # Mock da criação da instância primeiro
+        instance_guid = "guid-instance-1"
+        self.cataloger.catalog_instance = Mock(return_value=instance_guid)
+
         # Simular exceção ao criar uma tabela
         def raise_exception(entity_data):
             if entity_data["entities"][0]["attributes"]["name"] == "orders":
@@ -74,7 +90,7 @@ class TestPostgresCataloger(unittest.TestCase):
             return self.mock_create_entity(entity_data)
 
         self.mock_atlas.create_entity.side_effect = raise_exception
-        self.cataloger.catalog_database(self.db_name)
+        self.cataloger.catalog_database(self.db_name, instance_guid=instance_guid)
         result = self.cataloger.catalog_all_tables()
 
         # customers deve ser catalogada, orders falhar

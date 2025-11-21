@@ -57,3 +57,30 @@ class AtlasClient:
             return response.json()
         else:
             raise ValueError(f"Resposta não é JSON: {response.text}")
+
+# Adicione isto no final do arquivo atlas_client.py:
+
+if __name__ == "__main__":
+    print("🧪 Testando AtlasClient...")
+    
+    client = AtlasClient()
+    
+    try:
+        # Testar conexão básica
+        print("✅ AtlasClient criado com sucesso")
+        
+        # Testar busca
+        result = client.search_entities("*")
+        entities_count = len(result.get('entities', []))
+        print(f"✅ Busca retornou {entities_count} entidades")
+        
+        # Testar get_entity (pegar primeira entidade se existir)
+        if entities_count > 0:
+            first_guid = result['entities'][0]['guid']
+            entity = client.get_entity(first_guid)
+            print(f"✅ Get_entity funcionou para GUID: {first_guid[:8]}...")
+        
+        print("🎉 AtlasClient TESTADO E APROVADO!")
+        
+    except Exception as e:
+        print(f"❌ Erro no AtlasClient: {e}")

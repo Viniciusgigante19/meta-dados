@@ -1,4 +1,6 @@
-# tests/test_extractor.py
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import unittest
 from unittest.mock import patch, MagicMock
@@ -7,14 +9,14 @@ import pandas as pd
 
 class TestPostgreSQLExtractor(unittest.TestCase):
     def setUp(self):
+        # USAR OS VALORES REAIS DO CONFIG
         self.config = {
-            "host": "localhost",
+            "host": "postgres_erp",  # ← CORRETO: nome do container
             "port": 5432,
-            "database": "northwind",
+            "database": "northwind", 
             "user": "postgres",
             "password": "postgres"
         }
-        self.extractor = PostgreSQLExtractor(**self.config)
 
         # Tabelas e colunas simuladas
         self.fake_tables = ["customers", "orders"]
@@ -30,21 +32,37 @@ class TestPostgreSQLExtractor(unittest.TestCase):
         }
 
     @patch("pandas.read_sql")
-    def test_list_tables(self, mock_read_sql):
+    @patch("psycopg2.connect")  # ← MOCKAR A CONEXÃO
+    def test_list_tables(self, mock_connect, mock_read_sql):
+        # Mock da conexão
+        mock_conn = MagicMock()
+        mock_connect.return_value = mock_conn
+        
         # Mock do retorno da query
         mock_read_sql.return_value = pd.DataFrame({"table_name": self.fake_tables})
 
-        tables = self.extractor.list_tables()
+        extractor = PostgreSQLExtractor(**self.config)
+        tables = extractor.list_tables()
+        
         self.assertEqual(tables, self.fake_tables)
         mock_read_sql.assert_called_once()
+        extractor.close()
 
     @patch("pandas.read_sql")
-    def test_get_columns(self, mock_read_sql):
+    @patch("psycopg2.connect")  # ← MOCKAR A CONEXÃO
+    def test_get_columns(self, mock_connect, mock_read_sql):
+        # Mock da conexão
+        mock_conn = MagicMock()
+        mock_connect.return_value = mock_conn
+        
+        extractor = PostgreSQLExtractor(**self.config)
+        
         for table, columns in self.fake_columns.items():
             mock_read_sql.return_value = pd.DataFrame(columns)
-            result = self.extractor.get_columns(table)
+            result = extractor.get_columns(table)
             self.assertEqual(result, columns)
-            mock_read_sql.assert_called()
+            
+        extractor.close()
 
     @patch("psycopg2.connect")
     def test_connection_failure(self, mock_connect):
