@@ -1,3 +1,50 @@
+# Como testar os arquivos.py.
+
+## 1- Copia todos os arquivos da raiz do projeto
+Use o comando a seguir no caminho ilustrado dentro do projeto para 
+copiar toda a pasta /meu-catalogo-atlas para o conteiner pyspark.
+
+
+
+```
+PATH : .../meta-dados
+docker cp /workspaces/meta-dados/meu-catalogo-atlas/. pyspark_aula_container:/home/jovyan/work/
+```
+
+
+## 2-  Entra no ambiente que executa arquivos py 
+Para executar os testes use o comando indicado no caminho ilustrado.
+
+
+
+```
+PATH : .../meta-dados
+docker exec -it pyspark_aula_container bash
+```
+
+## 3- Área de testes:
+
+Após o passo 2 você estará em  "jovyan@32b9d79df5f9:~/work$" no terminal e aqui rode 
+os comandos a seguir para rodar cada arquivo do projeto
+
+### TESTE 
+
+```
+python atlas_client.py
+python data_catalogger.py
+python discovery_report.py
+python postgres_extractor.py
+```
+E para arquivos dentro de /tests faça:
+```
+cd tests   
+
+python test_atlas_client.py
+python test_catalogger.py
+python test_extractor.py
+```
+
+
 # Catálogo de Dados com Apache Atlas
 
 ## Visão Geral
